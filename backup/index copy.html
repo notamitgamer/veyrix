@@ -10,7 +10,31 @@
     <meta name="theme-color" content="#121b2a">
     
     <!-- Tailwind CSS -->
-    <link rel="stylesheet" href="assets/style.css">    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        veyrix: {
+                            bg: '#0a0f1a',
+                            surface: '#121b2a',
+                            border: '#1e293b',
+                            accent: '#3b82f6',
+                            accentHover: '#2563eb',
+                            text: '#e2e8f0',
+                            muted: '#94a3b8'
+                        }
+                    },
+                    transitionTimingFunction: {
+                        'material': 'cubic-bezier(0.2, 0.0, 0, 1.0)',
+                    }
+                }
+            }
+        }
+    </script>
+    
     <style>
         /* Global tap highlight & focus reset */
         * {
@@ -471,14 +495,6 @@
                            class="w-full bg-veyrix-bg border border-veyrix-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-veyrix-accent transition-all">
                     <p class="text-[10px] text-veyrix-muted mt-1.5">No extension required. Recognized files will be auto-formatted.</p>
                 </div>
-                
-                <div id="web-editor-recommendation" class="hidden animate-fade-in bg-veyrix-accent/10 border border-veyrix-accent/20 rounded-lg p-3">
-                    <p class="text-xs text-veyrix-accent mb-2">Better experience for HTML, CSS & JavaScript projects.</p>
-                    <button onclick="App.openInWebEditor()" class="w-full py-1.5 bg-veyrix-surface hover:bg-white/5 border border-white/10 rounded text-xs text-veyrix-text transition-colors flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-veyrix-accent">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                        Open in Web Editor (Recommended)
-                    </button>
-                </div>
             </div>
             <div class="p-4 border-t border-veyrix-border bg-black/20 flex justify-end gap-2">
                 <button onclick="UI.hideModal()" class="px-4 py-2 text-sm rounded-lg hover:bg-white/5 text-veyrix-text transition-colors">Cancel</button>
@@ -754,12 +770,12 @@ const APP_VERSION = '1.0.5';
 // ===== FIREBASE CONFIGURATION =====
 // Firebase initializes ONLY when Cloud Share is selected.
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyAe0qqVsz558qxaxaUl6wGg48cGy43yWM0",
+  authDomain: "veyrix-ide.firebaseapp.com",
+  projectId: "veyrix-ide",
+  storageBucket: "veyrix-ide.firebasestorage.app",
+  messagingSenderId: "1085870717850",
+  appId: "1:1085870717850:web:5270790b2388128ab31823"
 };
 
 // Application State
@@ -1366,22 +1382,6 @@ const App = {
                 el.value = val.substring(0, selStart - 1) + val.substring(selStart);
                 el.setSelectionRange(selStart - 1, selStart - 1);
             }
-
-            // Smart Extension Detection for Web Editor
-            if (el.id === 'new-file-input') {
-                const recBox = document.getElementById('web-editor-recommendation');
-                if (recBox) {
-                    const filename = el.value.trim().toLowerCase();
-                    const webExts = ['.html', '.htm', '.css', '.js', '.mjs', '.jsx', '.ts', '.tsx', '.json', '.xml', '.svg', '.yaml', '.yml', '.md'];
-                    
-                    const hasWebExt = webExts.some(ext => filename.endsWith(ext) && filename.length > ext.length);
-                    if (hasWebExt) {
-                        recBox.classList.remove('hidden');
-                    } else {
-                        recBox.classList.add('hidden');
-                    }
-                }
-            }
         };
 
         const newFileInput = document.getElementById('new-file-input');
@@ -1551,14 +1551,6 @@ const App = {
         }
     },
     
-    openInWebEditor: () => {
-        const input = document.getElementById('new-file-input').value.trim();
-        if(!input) return;
-        localStorage.setItem('veyrix_pending_web_file', input);
-        UI.hideModal();
-        window.location.href = '/web';
-    },
-
     createNewFile: async () => {
         const input = document.getElementById('new-file-input').value.trim();
         if(!input) return UI.toast('Filename cannot be empty', 'error');

@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/* Forces Tailwind to use your <html class="dark"> for dark mode */
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Your custom Veyrix colors */
+  --color-veyrix-bg: #0a0f1a;
+  --color-veyrix-surface: #121b2a;
+  --color-veyrix-border: #1e293b;
+  --color-veyrix-accent: #3b82f6;
+  --color-veyrix-accentHover: #2563eb;
+  --color-veyrix-text: #e2e8f0;
+  --color-veyrix-muted: #94a3b8;
+  
+  /* Your custom material transition */
+  --ease-material: cubic-bezier(0.2, 0.0, 0, 1.0);
+}
