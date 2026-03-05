@@ -153,6 +153,52 @@
         .hamburger--spin.is-active .hamburger-inner { transform: rotate(225deg); transition-delay: 0.12s; transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1); }
         .hamburger--spin.is-active .hamburger-inner::before { top: 0; opacity: 0; transition: top 0.1s ease-out, opacity 0.1s 0.12s ease-out; }
         .hamburger--spin.is-active .hamburger-inner::after { bottom: 0; transform: rotate(-90deg); transition: bottom 0.1s ease-out, transform 0.22s 0.12s cubic-bezier(0.215, 0.61, 0.355, 1); }
+@media (max-width: 768px) {
+    #docs-sidebar {
+        /* Force fixed positioning and ignore all parent layout rules */
+        position: fixed !important;
+        top: 0 !important; 
+        bottom: 0 !important;
+        left: 0 !important;
+        
+        /* Restore full screen width and height */
+        width: 100% !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        
+        /* The highest possible priority to be on top of footer */
+        z-index: 2147483647 !important; 
+        
+        /* Fix for being 'behind' - resets stacking context */
+        margin: 0 !important;
+        transform: none !important;
+        isolation: isolate !important;
+        
+        /* Internal scrolling only */
+        overflow-y: auto !important;
+        overscroll-behavior: contain !important;
+        
+        /* Semi-transparent background with glass effect */
+        background-color: rgba(18, 27, 42, 0.85) !important; /* Semi-transparent version of your theme color */
+        backdrop-filter: blur(8px) !important; /* Adds a blur effect to content behind the sidebar */
+        -webkit-backdrop-filter: blur(8px) !important; /* Safari support */
+    }
+
+    /* Force the footer and main content behind the sidebar when open */
+    body:has(#docs-sidebar:not(.hidden)) footer,
+    body:has(#docs-sidebar:not(.hidden)) main {
+        z-index: 1 !important;
+        position: relative !important;
+    }
+
+    /* Lock the background page so the footer doesn't slide under the sidebar */
+    body:has(#docs-sidebar:not(.hidden)) {
+        overflow: hidden !important;
+        height: 100vh !important;
+    }
+}
+
+
     </style>
 </head>
 <body class="bg-veyrix-bg text-veyrix-text antialiased selection:bg-veyrix-accent/30 font-sans flex flex-col min-h-screen relative">
@@ -189,8 +235,7 @@
                 </a>
                 <a href="/" class="px-3 md:px-4 py-1.5 text-sm font-medium rounded-lg bg-veyrix-accent hover:bg-veyrix-accentHover text-white shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-veyrix-bg focus-visible:ring-veyrix-accent flex items-center gap-1.5 md:gap-2">
                     <svg class="w-4 h-4 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <span class="hidden sm:inline">Launch IDE</span>
-                    <span class="sm:hidden">IDE</span>
+                    Launch IDE
                 </a>
             </div>
         </div>
@@ -225,6 +270,7 @@
                 <a href="#limitations" class="nav-link block px-3 py-2 rounded-lg text-veyrix-muted opacity-0 animate-slide-up delay-300">Limitations</a>
                 <a href="#roadmap" class="nav-link block px-3 py-2 rounded-lg text-veyrix-muted opacity-0 animate-slide-up delay-300">Roadmap</a>
                 <a href="#ui-visuals" class="nav-link block px-3 py-2 rounded-lg text-veyrix-muted opacity-0 animate-slide-up delay-300">UI Visuals</a>
+                <a href="#legal" class="nav-link block px-3 py-2 rounded-lg text-veyrix-muted opacity-0 animate-slide-up delay-300">Legal Disclaimer & Licensing</a>
             </nav>
         </aside>
 
@@ -235,11 +281,11 @@
                 <!-- Section: Introduction -->
                 <section id="introduction" class="doc-section opacity-0 animate-slide-up delay-100">
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="px-3 py-1 rounded-full bg-veyrix-accent/10 border border-veyrix-accent/20 text-veyrix-accent text-xs font-mono font-semibold">v1.0.5</div>
+                        <div class="px-3 py-1 rounded-full bg-veyrix-accent/10 border border-veyrix-accent/20 text-veyrix-accent text-xs font-mono font-semibold">v1.0.9</div>
                         <div class="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-semibold">Stable</div>
                     </div>
                     <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-8 tracking-tight leading-normal pb-2 doc-heading">
-                        Introduction
+                        Veyrix IDE
                         <a href="#introduction" class="anchor-icon mt-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></a>
                     </h1>
 
@@ -255,7 +301,7 @@
                                 <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                                 Absolute Privacy
                             </h4>
-                            <p class="text-xs text-veyrix-muted leading-relaxed">Your files never leave your device. Everything is securely saved in your browser's local IndexedDB storage.</p>
+                            <p class="text-xs text-veyrix-muted leading-relaxed">Your files never leave your device. Everything is securely saved in your browser's local IndexedDB storage unless you use cloud share.</p>
                         </div>
                         <div class="bg-veyrix-surface border border-veyrix-border p-4 rounded-xl shadow-sm">
                             <h4 class="text-white font-medium mb-2 flex items-center gap-2">
@@ -308,7 +354,7 @@
                         </div>
                         <div class="bg-veyrix-surface border border-veyrix-border p-4 rounded-xl">
                             <h4 class="text-white font-medium mb-1 text-sm">Firebase</h4>
-                            <p class="text-xs text-veyrix-muted">v11.6.1 • Cloud Sync (Lazy)</p>
+                            <p class="text-xs text-veyrix-muted">v11.6.1 • Cloud Share (Manual)</p>
                         </div>
                     </div>
                 </section>
@@ -328,7 +374,7 @@
                             <div class="bg-veyrix-surface border border-veyrix-border rounded-lg p-5 space-y-4">
                                 <div>
                                     <strong class="text-veyrix-text block mb-1">Creating a New File:</strong>
-                                    <p class="text-xs text-veyrix-muted">Click the `+` icon in the sidebar (or the floating button on mobile). Type your desired filename including the extension (e.g., `script.js`, `index.html`, `Dockerfile`). Veyrix automatically detects the language based on the extension and applies correct syntax highlighting.</p>
+                                    <p class="text-xs text-veyrix-muted">Click the `+` icon in the sidebar (or the floating button on mobile). Type your desired filename including the extension (e.g., `script.js`, `index.html`, `Dockerfile`). Veyrix automatically detects the language based on the extension and applies correct syntax highlighting. You can create a file without an extension.</p>
                                 </div>
                                 <div>
                                     <strong class="text-veyrix-text block mb-1">Importing an Existing File:</strong>
@@ -723,7 +769,7 @@
                     <div class="space-y-4">
                         <div class="bg-veyrix-surface border border-veyrix-border rounded-lg p-5">
                             <h4 class="text-white font-semibold text-sm mb-2">Where are my files stored?</h4>
-                            <p class="text-xs text-veyrix-muted">All your files are stored locally on your device inside your browser's secure IndexedDB. They are never uploaded to any server automatically. You maintain full ownership and privacy of your code.</p>
+                            <p class="text-xs text-veyrix-muted">All your files are stored locally on your device inside your browser's secure IndexedDB. They are never uploaded to any server automatically. You maintain full ownership and privacy of your code. Only when you use cloud share are your files sent to the server.</p>
                         </div>
                         <div class="bg-veyrix-surface border border-veyrix-border rounded-lg p-5">
                             <h4 class="text-white font-semibold text-sm mb-2">Do I need an internet connection to use Veyrix?</h4>
@@ -739,13 +785,22 @@
                         </div>
                         <div class="bg-veyrix-surface border border-veyrix-border rounded-lg p-5">
                             <h4 class="text-white font-semibold text-sm mb-2">Can I install Veyrix as an App?</h4>
-                            <p class="text-xs text-veyrix-muted">Yes! Veyrix is a Progressive Web App (PWA). On Chrome/Android, tap the menu and select "Install App". On Safari/iOS, tap Share and select "Add to Home Screen". It will run fullscreen without browser toolbars.</p>
+                            <p class="text-xs text-veyrix-muted flex items-baseline flex-wrap gap-1">
+                                Yes! Veyrix is a Progressive Web App (PWA). Tap the 
+                                <span class="inline-flex items-center self-center">
+                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                </span>
+                                button, then click on the Install Web App. It will run fullscreen without browser toolbars.
+                            </p>
                         </div>
                     </div>
                 </section>
 
                 <!-- Section: Limitations & Roadmap -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="flex flex-col gap-16">
                     <section id="limitations" class="doc-section opacity-0 animate-slide-up delay-300">
                         <h2 class="text-xl font-bold text-white mb-4 border-b border-veyrix-border pb-2 doc-heading">
                             Current Limitations
@@ -758,24 +813,51 @@
                             <li><strong>Single View:</strong> Split-pane or multi-tab rendering is not yet supported in the DOM structure.</li>
                         </ul>
                     </section>
-                    
+            
                     <section id="roadmap" class="doc-section opacity-0 animate-slide-up delay-300">
-                        <h2 class="text-xl font-bold text-white mb-4 border-b border-veyrix-border pb-2 doc-heading">
+                        <h2 class="text-xl font-bold text-white mb-6 border-b border-veyrix-border pb-2 doc-heading">
                             Development Roadmap
                             <a href="#roadmap" class="anchor-icon"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></a>
                         </h2>
-                        <div class="space-y-4 text-sm text-veyrix-muted">
-                            <div class="flex items-start gap-3">
-                                <span class="bg-veyrix-accent/20 text-veyrix-accent text-[10px] font-bold px-2 py-0.5 rounded shrink-0 mt-0.5">v1.1</span>
-                                <div><strong>Virtual Folder Support:</strong> Modifying the `files` schema to include path nesting and folder metadata objects.</div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="text-veyrix-accent text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    Core IDE
+                                </h3>
+                                <div class="space-y-4 text-sm text-veyrix-muted border-l border-veyrix-border/30 pl-4">
+                                    <div class="flex items-start gap-3">
+                                        <span class="bg-veyrix-accent/20 text-veyrix-accent text-[10px] font-bold px-2 py-0.5 rounded shrink-0 mt-0.5">v1.0.9</span>
+                                        <div><strong>Native Share Protocol:</strong> Re-engineered the file sharing logic to use <code>application/octet-stream</code> and URI-context anchoring, successfully bypassing strict Desktop OS security blocks that previously triggered "Permission Denied" errors.</div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="bg-black/40 text-veyrix-muted text-[10px] font-bold px-2 py-0.5 rounded shrink-0 mt-0.5">v1.0.8</span>
+                                        <div><strong>Snapshot Restore Optimization:</strong> Updated the version history logic to trigger a confirmation modal before restoration, preventing accidental data loss and ensuring a clean editor state after recovery.</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex items-start gap-3">
-                                <span class="bg-black/40 text-veyrix-muted text-[10px] font-bold px-2 py-0.5 rounded shrink-0 mt-0.5">v1.2</span>
-                                <div><strong>ZIP Export/Import:</strong> Integrating JSZip to allow full workspace downloads as `.zip` archives.</div>
-                            </div>
-                            <div class="flex items-start gap-3">
-                                <span class="bg-black/40 text-veyrix-muted text-[10px] font-bold px-2 py-0.5 rounded shrink-0 mt-0.5">v2.0</span>
-                                <div><strong>Multi-Tab Interface:</strong> Overhauling the `activeFileId` state to support an array of open tabs for rapid context switching.</div>
+
+                            <div>
+                                <h3 class="text-blue-400 text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-blue-400 rounded-full"></span>
+                                    Web IDE
+                                </h3>
+                                <div class="space-y-4 text-sm text-veyrix-muted border-l border-veyrix-border/30 pl-4">
+                                    <div class="flex items-start gap-3">
+                                        <span class="bg-veyrix-accent/20 text-veyrix-accent text-[10px] font-bold px-2 py-0.5 rounded shrink-0 mt-0.5">v1.0.2</span>
+                                        <div>
+                                            <strong>Dynamic Viewport Resizer:</strong> 
+                                            Implemented a draggable split-pane interface, allowing users to manually adjust the preview width to simulate and test web designs across various device breakpoints.
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="bg-black/40 text-veyrix-muted text-[10px] font-bold px-2 py-0.5 rounded shrink-0 mt-0.5">v1.0.1</span>
+                                        <div>
+                                            <strong>Advanced File System & Workspace:</strong> 
+                                            Introduced nested folder mapping, batch file uploads, and a persistence-linked tab system for seamless navigation across complex project structures.
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -788,44 +870,90 @@
                         <a href="#ui-visuals" class="anchor-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></a>
                     </h2>
                     
-                    <p class="text-sm text-veyrix-muted mb-6">The interface is designed using a flexbox layout tailored for both vast desktop screens and narrow mobile displays. The sidebar is absolutely positioned on mobile with a z-index overlay.</p>
+                    <p class="text-sm text-veyrix-muted mb-10">The interface is designed using a flexbox layout tailored for high-performance desktop workflows. Both environments utilize a persistent sidebar for file management, while the Web IDE adds a synchronized live preview engine.</p>
 
-                    <div class="mockup-window h-56 flex flex-col w-full max-w-3xl" aria-hidden="true">
-                        <div class="mockup-header border-b border-veyrix-border">
-                            <div class="flex gap-1.5"><div class="mockup-dot bg-red-400"></div><div class="mockup-dot bg-amber-400"></div><div class="mockup-dot bg-green-400"></div></div>
-                            <div class="mx-auto text-[10px] text-veyrix-muted font-mono tracking-wider opacity-80 uppercase">Veyrix Application Frame</div>
-                        </div>
-                        <!-- Topbar -->
-                        <div class="h-8 bg-veyrix-surface border-b border-veyrix-border flex items-center px-4 justify-between">
-                            <div class="flex gap-2 items-center"><div class="w-3 h-3 bg-white/20 rounded-sm"></div> <div class="w-16 h-2 bg-white/10 rounded-sm"></div></div>
-                            <div class="w-24 h-4 bg-black/30 rounded-full border border-white/5"></div>
-                            <div class="flex gap-1"><div class="w-4 h-4 bg-white/10 rounded-sm"></div><div class="w-4 h-4 bg-veyrix-accent rounded-sm"></div></div>
-                        </div>
-                        <div class="flex flex-1 overflow-hidden">
-                            <!-- Sidebar -->
-                            <div class="w-1/4 bg-veyrix-surface border-r border-veyrix-border p-3 flex flex-col gap-2">
-                                <div class="h-2 w-16 bg-white/20 rounded mb-2"></div>
-                                <div class="h-4 w-full bg-veyrix-accent/20 border border-veyrix-accent/30 rounded flex items-center px-2"><div class="w-2 h-2 rounded-full bg-veyrix-accent"></div></div>
-                                <div class="h-4 w-full bg-black/20 rounded flex items-center px-2"><div class="w-2 h-2 rounded-full bg-white/20"></div></div>
-                                <div class="h-4 w-full bg-black/20 rounded flex items-center px-2"><div class="w-2 h-2 rounded-full bg-white/20"></div></div>
+                    <div class="space-y-12">
+                        <div>
+                            <h4 class="text-xs font-bold text-veyrix-accent uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-veyrix-accent rounded-full"></span>
+                                Veyrix IDE (Main) - Desktop Layout
+                            </h4>
+                            <div class="mockup-window h-64 flex flex-col w-full shadow-2xl border border-veyrix-border bg-veyrix-bg" aria-hidden="true">
+                                <div class="mockup-header border-b border-veyrix-border flex items-center px-3 py-1.5 gap-2 bg-veyrix-surface">
+                                    <div class="flex gap-1.5"><div class="mockup-dot bg-red-400"></div><div class="mockup-dot bg-amber-400"></div><div class="mockup-dot bg-green-400"></div></div>
+                                    <div class="mx-auto text-[10px] text-veyrix-muted font-mono tracking-wider opacity-60 uppercase">veyrix.is-a.dev</div>
+                                </div>
+                                <div class="h-8 bg-veyrix-surface border-b border-veyrix-border flex items-center px-4 justify-between">
+                                    <div class="flex gap-2 items-center"><div class="w-3 h-3 bg-white/20 rounded-sm"></div> <div class="w-16 h-2 bg-white/10 rounded-sm"></div></div>
+                                    <div class="w-24 h-4 bg-black/30 rounded-full border border-white/5"></div>
+                                    <div class="flex gap-1"><div class="w-3 h-3 bg-white/10 rounded-sm"></div><div class="w-3 h-3 bg-veyrix-accent rounded-sm"></div></div>
+                                </div>
+                                <div class="flex flex-1 overflow-hidden">
+                                    <div class="w-1/4 bg-veyrix-surface border-r border-veyrix-border p-3 flex flex-col gap-2">
+                                        <div class="h-2 w-16 bg-white/10 rounded mb-1"></div>
+                                        <div class="h-4 w-full bg-veyrix-accent/20 border border-veyrix-accent/30 rounded flex items-center px-2"><div class="w-2 h-2 rounded-full bg-veyrix-accent"></div></div>
+                                        <div class="h-4 w-full bg-black/20 rounded flex items-center px-2"><div class="w-2 h-2 rounded-full bg-white/10"></div></div>
+                                        <div class="h-4 w-full bg-black/20 rounded flex items-center px-2"><div class="w-2 h-2 rounded-full bg-white/10"></div></div>
+                                    </div>
+                                    <div class="flex-1 bg-veyrix-bg p-4 font-mono text-[10px] text-veyrix-text/80 space-y-1">
+                                        <div class="text-veyrix-accent">const <span class="text-white">ide</span> = {</div>
+                                        <div class="pl-4">mode: <span class="text-emerald-400">'general-purpose'</span>,</div>
+                                        <div class="pl-4">engine: <span class="text-emerald-400">'ace'</span></div>
+                                        <div>};</div>
+                                    </div>
+                                </div>
                             </div>
-                            <!-- Editor -->
-                            <div class="flex-1 bg-veyrix-bg p-4 relative font-mono text-[10px] text-veyrix-text">
-                                <div class="text-veyrix-accent">const <span class="text-white">init</span> = () => {</div>
-                                <div class="pl-4 text-emerald-400">// Load the engine</div>
-                                <div class="pl-4 text-purple-400">console.log("Veyrix loaded");</div>
-                                <div>}</div>
-                                <!-- FAB -->
-                                <div class="absolute right-4 bottom-4 h-8 w-8 rounded-full bg-veyrix-accent flex items-center justify-center text-white shadow-lg">+</div>
+                        </div>
+
+                        <div><br>
+                            <h4 class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-veyrix-accent rounded-full"></span>
+                                Veyrix Web - Desktop Layout (Preview Mode)
+                            </h4>
+                            <div class="mockup-window h-72 flex flex-col w-full shadow-2xl border border-veyrix-border bg-veyrix-bg" aria-hidden="true">
+                                <div class="mockup-header border-b border-veyrix-border flex items-center px-3 py-1.5 gap-2 bg-veyrix-surface">
+                                    <div class="flex gap-1.5"><div class="mockup-dot bg-red-400"></div><div class="mockup-dot bg-amber-400"></div><div class="mockup-dot bg-green-400"></div></div>
+                                    <div class="mx-auto text-[10px] text-veyrix-muted font-mono tracking-wider opacity-60 uppercase">veyrix.is-a.dev/web</div>
+                                </div>
+                                <div class="flex flex-1 overflow-hidden">
+                                    <div class="w-48 bg-veyrix-surface border-r border-veyrix-border p-3 flex flex-col gap-2">
+                                        <div class="h-2 w-12 bg-white/10 rounded mb-1"></div>
+                                        <div class="h-4 w-full bg-black/10 rounded flex items-center px-2 gap-2"><span class="text-[8px]">📁</span> <div class="w-8 h-1 bg-white/20 rounded"></div></div>
+                                        <div class="h-4 w-full bg-blue-400/10 border border-blue-400/30 rounded flex items-center px-2 gap-2"><span class="text-[8px]">📄</span> <div class="w-10 h-1 bg-blue-400/50 rounded"></div></div>
+                                        <div class="h-4 w-full bg-black/10 rounded flex items-center px-2 gap-2"><span class="text-[8px]">📄</span> <div class="w-12 h-1 bg-white/20 rounded"></div></div>
+                                    </div>
+                                    <div class="flex-1 bg-veyrix-bg flex flex-col">
+                                        <div class="h-8 border-b border-veyrix-border flex bg-veyrix-surface">
+                                            <div class="h-full border-b-2 border-white border-r border-veyrix-border/50 px-3 flex items-center text-[10px] font-medium text-blue-400 bg-veyrix-bg/50">index.html</div>
+                                            <div class="h-full border-r border-veyrix-border/50 px-3 flex items-center opacity-40 text-[10px] font-medium text-white">script.js</div>
+                                        </div>
+                                        <div class="p-4 font-mono text-[9px] text-veyrix-text/80 space-y-1">
+                                            <div class="text-blue-400">&lt;h1&gt;<span class="text-white">Veyrix Web</span>&lt;/h1&gt;</div>
+                                            <div class="text-blue-400">&lt;style&gt;</div>
+                                            <div class="pl-4 text-purple-400">h1 { <span class="text-emerald-400">color: blue;</span> }</div>
+                                            <div class="text-blue-400">&lt;/style&gt;</div>
+                                        </div>
+                                    </div>
+                                    <div class="w-1 bg-blue-400/30 border-x border-veyrix-border"></div>
+                                    <div class="w-1/3 bg-white flex items-center justify-center relative">
+                                        <h1 class="text-blue-600 font-bold text-lg">Veyrix Web</h1>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <div class="pt-8 mt-12 border-t border-veyrix-border/50" role="complementary">
+                <div id="legal" class="pt-8 mt-12 border-t border-veyrix-border/50" role="complementary">
+                    
                     <div class="bg-red-900/10 border border-red-500/20 p-4 rounded-lg">
-                        <strong class="text-red-400 block mb-1 text-sm">Legal Disclaimer</strong>
-                        <p class="text-xs text-veyrix-muted leading-relaxed">Veyrix IDE and this documentation are provided "as is", without warranty of any kind, express or implied. The creator is not responsible for data loss, service interruptions, or damages arising from the use of this software. Local data management is the sole responsibility of the user. Use at your own risk.</p>
+                        <strong class="text-red-400 block mb-1 text-sm">Legal Disclaimer & Licensing</strong>
+                        <p class="text-xs text-veyrix-muted leading-relaxed">
+                            Veyrix IDE and this documentation are provided "as is" under the <strong>Apache License 2.0</strong>, without warranty of any kind, express or implied. 
+                            The creator reserves the right to modify or permanently discontinue this project at any time without prior notice. 
+                            The creator is not responsible for data loss, service interruptions, or damages arising from the use of this software. 
+                            Local data management is the sole responsibility of the user. Use at your own risk.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -844,13 +972,16 @@
                         <span class="font-bold text-white tracking-wide text-xl opacity-90">Veyrix</span>
                     </div>
                 </div>
-                <p class="text-xs text-veyrix-muted font-mono tracking-widest uppercase">Client-Side Architecture</p>
+                <p class="text-xs text-veyrix-muted font-mono tracking-widest uppercase">Code. Anywhere. Anytime.</p>
             </div>
             
             <div class="flex flex-col md:flex-row items-center gap-4 md:gap-8 text-veyrix-muted font-medium text-xs">
                 <a href="/" class="hover:text-veyrix-accent transition-colors duration-200">Return to Workspace</a>
                 <a href="https://github.com/notamitgamer/veyrix" target="_blank" rel="noopener noreferrer" class="hover:text-veyrix-accent transition-colors duration-200 flex items-center gap-1.5">
                     Source Repository <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
+                <a href="https://github.com/notamitgamer" target="_blank" rel="noopener noreferrer" class="hover:text-veyrix-accent transition-colors duration-200 flex items-center gap-1.5">
+                    Maintainer <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                 </a>
             </div>
 
@@ -878,15 +1009,20 @@
             const hamburger = document.getElementById('hamburger-btn');
             const links = sidebar.querySelectorAll('a.nav-link');
             
-            links.forEach(link => {
-                link.addEventListener('click', () => {
-                    if (window.innerWidth < 768) {
-                        sidebar.classList.add('hidden');
-                        hamburger.classList.remove('is-active');
-                        hamburger.setAttribute('aria-expanded', 'false');
-                    }
-                });
-            });
+links.forEach(link => {
+    link.addEventListener('click', () => {
+        // Force highlight immediately on click
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+
+        if (window.innerWidth < 768) {
+            sidebar.classList.add('hidden');
+            hamburger.classList.remove('is-active');
+            hamburger.setAttribute('aria-expanded', 'false');
+        }
+    });
+});
+
 
             const observerOptions = {
                 root: null,
