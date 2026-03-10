@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veyrix IDE | Code. Anywhere. Anytime.</title>
+    
+    <!-- Use Tailwind via CDN for styling to keep it single-file -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configure Tailwind to match Veyrix Branding -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        veyrix: {
+                            bg: '#0a0f1a',
+                            surface: '#121b2a',
+                            border: '#1e293b',
+                            accent: '#3b82f6',
+                            accentHover: '#2563eb',
+                            text: '#e2e8f0',
+                            muted: '#94a3b8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                        mono: ['Fira Code', 'Consolas', 'Monaco', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base styles to prevent flash of unstyled content */
+        body {
+            background-color: #0a0f1a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Global Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #0a0f1a; border-left: 1px solid #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 5px; border: 2px solid #0a0f1a; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Scroll Animation Classes */
+        .scroll-trigger, .stagger-item {
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .slide-left { transform: translateX(-80px); }
+        .slide-right { transform: translateX(80px); }
+        .slide-up { transform: translateY(50px); }
+
+        .in-view {
+            opacity: 1;
+            transform: translate(0, 0);
+        }
+
+        /* Typewriter Cursor */
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.2em;
+            background-color: #e2e8f0;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Mockup Window Styling */
+        .mockup-window {
+            background: #0a0f1a;
+            border: 1px solid #1e293b;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .mockup-header {
+            background: #121b2a;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+            border-bottom: 1px solid #1e293b;
+        }
+        
+        .mockup-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Syntax Highlighting Colors */
+        .kw { color: #c678dd; } /* Keyword - Purple */
+        .fn { color: #61afef; } /* Function - Blue */
+        .st { color: #98c379; } /* String - Green */
+        .vr { color: #e5c07b; } /* Variable/Property - Yellow */
+        .cm { color: #5c6370; font-style: italic; } /* Comment - Gray */
+        .op { color: #56b6c2; } /* Operator - Cyan */
+        .tg { color: #e06c75; } /* Tag - Red */
+
+        /* Hide scrollbar for code blocks */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Render Style Static Hero Grid */
+        .hero-bg {
+            position: relative;
+            background-color: #0a0f1a;
+        }
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-size: 48px 48px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+            /* Half circle starting from version number and fading out */
+            mask-image: radial-gradient(ellipse 80% 50% at 50% 30%, black 0%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 30%, black 0%, transparent 100%);
+            z-index: 0;
+        }
+
+        /* Bento Box Hover Effects */
+        .bento-card {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .bento-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.04), transparent 40%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bento-content { position: relative; z-index: 1; }
+    </style>
+</head>
+<body class="antialiased selection:bg-white/20 selection:text-white">
+
+    <!-- Sticky Navigation -->
+    <header class="fixed w-full top-0 z-50 transition-all duration-300 bg-veyrix-bg/95 backdrop-blur-md border-b border-veyrix-border" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="#" class="flex items-center gap-3 group relative z-10">
+                <img src="assets/veyrix.svg" alt="Veyrix Logo" class="w-7 h-7">
+                <span class="font-bold text-white text-xl tracking-tight">Veyrix</span>
+            </a>
+            <nav class="hidden md:flex items-center gap-2 relative z-10">
+                <a class="group relative z-10 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap text-veyrix-muted transition-colors duration-300 hover:text-white px-4 py-2 text-sm font-medium rounded-md" href="#features">
+                    <span class="pointer-events-none absolute inset-0 z-0 block h-full w-full bg-white/10 transition-transform duration-300 origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"></span>
+                    <span class="relative z-10">Features</span>
+                </a>
+                <a class="group relative z-10 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap text-veyrix-muted transition-colors duration-300 hover:text-white px-4 py-2 text-sm font-medium rounded-md" href="#architecture">
+                    <span class="pointer-events-none absolute inset-0 z-0 block h-full w-full bg-white/10 transition-transform duration-300 origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"></span>
+                    <span class="relative z-10">Architecture</span>
+                </a>
+                <a class="group relative z-10 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap text-veyrix-muted transition-colors duration-300 hover:text-white px-4 py-2 text-sm font-medium rounded-md" href="/docs">
+                    <span class="pointer-events-none absolute inset-0 z-0 block h-full w-full bg-white/10 transition-transform duration-300 origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"></span>
+                    <span class="relative z-10">Documentation</span>
+                </a>
+                <a class="group relative z-10 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap text-veyrix-muted transition-colors duration-300 hover:text-white px-4 py-2 text-sm font-medium rounded-md" href="https://github.com/notamitgamer/veyrix" target="_blank">
+                    <span class="pointer-events-none absolute inset-0 z-0 block h-full w-full bg-white/10 transition-transform duration-300 origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"></span>
+                    <span class="relative z-10">GitHub</span>
+                </a>
+            </nav>
+            <div class="flex items-center gap-3 relative z-10">
+                <!-- Header Button with Render.com slide animation -->
+                <a class="group relative z-10 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap bg-white text-black transition-colors duration-300 hover:text-white px-5 py-2 text-sm font-semibold rounded-md border border-transparent" href="/ide">
+                    <span class="pointer-events-none absolute inset-0 z-0 block h-full w-full bg-veyrix-accent transition-transform duration-300 origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"></span>
+                    <span class="relative z-10">Launch IDE</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="relative z-10">
+        
+        <!-- Premium Hero Section (Lander) -->
+        <section class="hero-bg w-full min-h-[100dvh] flex flex-col items-center justify-center px-6 overflow-hidden">
+            
+            <!-- Static Background Grid -->
+            <div class="hero-grid pointer-events-none"></div>
+
+            <!-- Main Content -->
+            <div class="relative z-10 text-center flex flex-col items-center w-full max-w-5xl scroll-trigger slide-up mt-16 md:mt-0">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-veyrix-surface border border-veyrix-border text-veyrix-muted text-xs font-mono font-medium mb-8">
+                    <span class="w-2 h-2 rounded-full bg-veyrix-accent"></span>
+                    v1.1.0 Stable Release
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white tracking-tighter leading-tight mb-6 w-full">
+                    Code. <span class="text-veyrix-accent">Anywhere.</span> Anytime.
+                </h1>
+                
+                <p class="text-lg md:text-xl text-veyrix-muted max-w-2xl mb-12 leading-relaxed font-medium">
+                    A blazing-fast, offline-first development environment that lives entirely in your browser. Zero setup, absolute privacy.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row flex-wrap gap-4 w-full sm:w-auto justify-center">
+                    <!-- Primary Button (White -> Blue fill) -->
+                    <a class="group relative z-10 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap bg-white text-black transition-colors duration-300 hover:text-white h-14 md:h-[60px] text-base font-semibold px-8 rounded-md gap-3 border border-transparent" href="/ide">
+                        <span class="pointer-events-none absolute inset-0 z-0 block h-full w-full bg-veyrix-accent transition-transform duration-300 origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"></span>
+                        <span class="relative z-10 inline-block transition-transform duration-300 group-hover:-translate-x-1">Open Veyrix IDE</span>
+                        <svg class="relative z-10 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" width="12" height="20" viewBox="0 0 12 20" fill="none">
+                            <rect x="8" y="8" width="4" height="4" fill="currentColor"></rect>
+                            <rect x="4" y="4" width="4" height="4" fill="currentColor"></rect>
+                            <rect width="4" height="4" fill="currentColor"></rect>
+                            <rect x="4" y="12" width="4" height="4" fill="currentColor"></rect>
+                            <rect y="16" width="4" height="4" fill="currentColor"></rect>
+                        </svg>
+                    </a>
+                    <!-- Secondary Button (Transparent -> White fill) -->
+                    <a class="group relative z-10 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap bg-transparent text-white transition-colors duration-300 hover:text-black h-14 md:h-[60px] text-base font-semibold px-8 rounded-md gap-3 border border-veyrix-border hover:border-transparent" href="/web">
+                        <span class="pointer-events-none absolute inset-0 z-0 block h-full w-full bg-white transition-transform duration-300 origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"></span>
+                        <span class="relative z-10 inline-block transition-transform duration-300 group-hover:-translate-x-1">Try Veyrix Web</span>
+                        <svg class="relative z-10 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" width="12" height="20" viewBox="0 0 12 20" fill="none">
+                            <rect x="8" y="8" width="4" height="4" fill="currentColor"></rect>
+                            <rect x="4" y="4" width="4" height="4" fill="currentColor"></rect>
+                            <rect width="4" height="4" fill="currentColor"></rect>
+                            <rect x="4" y="12" width="4" height="4" fill="currentColor"></rect>
+                            <rect y="16" width="4" height="4" fill="currentColor"></rect>
+                        </svg>
+                    </a>
+                    <!-- Tertiary Button (Transparent -> Purple fill) -->
+                    <a class="group relative z-10 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap bg-transparent text-veyrix-muted transition-colors duration-300 hover:text-white h-14 md:h-[60px] text-base font-semibold px-8 rounded-md gap-3 border border-veyrix-border hover:border-transparent" href="/docs">
+                        <span class="pointer-events-none absolute inset-0 z-0 block h-full w-full bg-purple-600 transition-transform duration-300 origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"></span>
+                        <span class="relative z-10 inline-block transition-transform duration-300 group-hover:-translate-x-1">Read Documentation</span>
+                        <svg class="relative z-10 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" width="12" height="20" viewBox="0 0 12 20" fill="none">
+                            <rect x="8" y="8" width="4" height="4" fill="currentColor"></rect>
+                            <rect x="4" y="4" width="4" height="4" fill="currentColor"></rect>
+                            <rect width="4" height="4" fill="currentColor"></rect>
+                            <rect x="4" y="12" width="4" height="4" fill="currentColor"></rect>
+                            <rect y="16" width="4" height="4" fill="currentColor"></rect>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Metrics Dashboard -->
+        <section class="relative z-10 w-full bg-veyrix-surface border-y border-veyrix-border py-12 scroll-trigger slide-up" id="stats-section">
+            <div class="max-w-5xl mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-veyrix-border">
+                    <div class="flex flex-col items-center justify-center pt-4 md:pt-0">
+                        <div class="text-4xl md:text-5xl font-bold text-white tracking-tight mb-2">
+                            &lt; <span class="counter font-mono" data-target="50">0</span><span class="text-2xl text-veyrix-muted">ms</span>
+                        </div>
+                        <div class="text-xs font-bold text-veyrix-muted uppercase tracking-widest">Boot Time</div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center pt-8 md:pt-0">
+                        <div class="text-4xl md:text-5xl font-bold text-white tracking-tight mb-2">
+                            <span class="counter font-mono" data-target="100">0</span><span class="text-2xl text-veyrix-muted">%</span>
+                        </div>
+                        <div class="text-xs font-bold text-veyrix-muted uppercase tracking-widest">Client-Side Architecture</div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center pt-8 md:pt-0">
+                        <div class="text-4xl md:text-5xl font-bold text-white tracking-tight mb-2">
+                            <span class="counter font-mono" data-target="0">100</span><span class="text-2xl text-veyrix-muted">ms</span>
+                        </div>
+                        <div class="text-xs font-bold text-veyrix-muted uppercase tracking-widest">Server Latency</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Animated Scroll Section 1: Core IDE -->
+        <section id="features" class="max-w-7xl mx-auto px-6 py-32 overflow-hidden border-b border-veyrix-border">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <!-- Text: Left -->
+                <div class="flex-1 scroll-trigger slide-left space-y-6 stagger-container">
+                    <div class="w-12 h-12 rounded-lg bg-veyrix-surface flex items-center justify-center text-veyrix-text border border-veyrix-border">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                    </div>
+                    <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">Veyrix IDE: Offline Persistence</h2>
+                    <p class="text-veyrix-muted leading-relaxed text-lg">
+                        Bypass the cloud entirely. Veyrix saves your code directly to your device's native IndexedDB. Instant load times, zero latency, and fully capable of running without an internet connection as an installable PWA.
+                    </p>
+                    <ul class="space-y-4 pt-2 text-sm text-veyrix-muted font-medium">
+                        <li class="flex items-center gap-3 stagger-item slide-up"><div class="p-1 rounded bg-veyrix-surface border border-veyrix-border"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div> Sub-second Time to Interactive</li>
+                        <li class="flex items-center gap-3 stagger-item slide-up"><div class="p-1 rounded bg-veyrix-surface border border-veyrix-border"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div> 5-Tier Snapshot Version History</li>
+                        <li class="flex items-center gap-3 stagger-item slide-up"><div class="p-1 rounded bg-veyrix-surface border border-veyrix-border"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div> &lt;30MB Idle RAM Usage</li>
+                    </ul>
+                </div>
+                <!-- Mockup: Right -->
+                <div class="flex-1 w-full scroll-trigger slide-right">
+                    <div class="mockup-window h-[400px] relative flex flex-col">
+                        <div class="mockup-header">
+                            <div class="flex gap-1.5"><div class="mockup-dot bg-veyrix-border"></div><div class="mockup-dot bg-veyrix-border"></div><div class="mockup-dot bg-veyrix-border"></div></div>
+                            <div class="mx-auto text-[11px] text-veyrix-muted font-mono bg-veyrix-bg px-3 py-1 rounded border border-veyrix-border">app.js</div>
+                        </div>
+                        <div class="flex-1 p-3 md:p-5 overflow-y-auto hide-scrollbar bg-veyrix-bg relative text-[10px] sm:text-xs md:text-sm font-mono leading-relaxed whitespace-pre-wrap break-words" id="code-block-1"><span class="cursor"></span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Animated Scroll Section 2: Veyrix Web -->
+        <section class="max-w-7xl mx-auto px-6 py-24 overflow-hidden border-b border-veyrix-border">
+            <div class="flex flex-col-reverse lg:flex-row items-center gap-16">
+                <!-- Mockup: Left -->
+                <div class="flex-1 w-full scroll-trigger slide-left">
+                    <div class="mockup-window h-[450px] relative flex flex-col">
+                        <div class="mockup-header">
+                            <div class="flex gap-1.5"><div class="mockup-dot bg-veyrix-border"></div><div class="mockup-dot bg-veyrix-border"></div><div class="mockup-dot bg-veyrix-border"></div></div>
+                            <div class="ml-4 flex gap-4 text-[10px] font-mono font-bold text-veyrix-muted">
+                                <span class="text-white border-b border-white pb-1">index.html</span>
+                                <span>style.css</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 flex overflow-hidden">
+                            <!-- Editor Pane -->
+                            <div class="w-1/2 p-3 md:p-4 bg-veyrix-bg border-r border-veyrix-border text-[10px] sm:text-xs md:text-sm font-mono leading-relaxed whitespace-pre-wrap break-words relative overflow-y-auto hide-scrollbar" id="code-block-2"><span class="cursor"></span></div>
+                            <!-- Live Preview Pane -->
+                            <div class="w-1/2 bg-white relative flex flex-col items-center justify-center transition-colors duration-500" id="live-preview-pane">
+                                <h1 class="text-3xl font-bold text-black transition-all duration-300" id="live-preview-text"></h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Text: Right -->
+                <div class="flex-1 scroll-trigger slide-right space-y-6 stagger-container">
+                    <div class="w-12 h-12 rounded-lg bg-veyrix-surface flex items-center justify-center text-veyrix-text border border-veyrix-border">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">Veyrix Web: Advanced Engine</h2>
+                    <p class="text-veyrix-muted leading-relaxed text-lg">
+                        Build complex web layouts with an isolated Virtual File System. Our custom AST parsing engine resolves relative imports on the fly, rendering live previews seamlessly inside an iframe without triggering network requests.
+                    </p>
+                    <ul class="space-y-4 pt-2 text-sm text-veyrix-muted font-medium">
+                        <li class="flex items-center gap-3 stagger-item slide-up"><div class="p-1 rounded bg-veyrix-surface border border-veyrix-border"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div> Real-time DOM Updates</li>
+                        <li class="flex items-center gap-3 stagger-item slide-up"><div class="p-1 rounded bg-veyrix-surface border border-veyrix-border"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div> Full Folder Mapping Support</li>
+                        <li class="flex items-center gap-3 stagger-item slide-up"><div class="p-1 rounded bg-veyrix-surface border border-veyrix-border"><svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div> 1-Click ZIP Archive Export</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Animated Scroll Section 3: Privacy -->
+        <section class="max-w-7xl mx-auto px-6 py-24 overflow-hidden border-b border-veyrix-border">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <!-- Text: Left -->
+                <div class="flex-1 scroll-trigger slide-left space-y-6">
+                    <div class="w-12 h-12 rounded-lg bg-veyrix-surface flex items-center justify-center text-veyrix-text border border-veyrix-border">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">Zero-Knowledge Security</h2>
+                    <p class="text-veyrix-muted leading-relaxed text-lg">
+                        Sharing a file to the cloud? Passwords are never transmitted in plaintext. Veyrix utilizes the native Web Crypto API to generate SHA-256 hashes locally, ensuring strict zero-knowledge protection before data touches Firebase.
+                    </p>
+                </div>
+                <!-- Mockup: Right -->
+                <div class="flex-1 w-full scroll-trigger slide-right">
+                    <div class="mockup-window h-[400px] relative flex flex-col">
+                        <div class="mockup-header border-b border-veyrix-border">
+                            <svg class="w-4 h-4 text-veyrix-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span class="text-xs font-mono text-veyrix-muted">security.ts</span>
+                        </div>
+                        <div class="flex-1 p-3 md:p-5 overflow-y-auto hide-scrollbar bg-veyrix-bg relative text-[10px] sm:text-xs md:text-sm font-mono leading-relaxed whitespace-pre-wrap break-words" id="code-block-3"><span class="cursor"></span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- The Architecture Grid -->
+        <section id="architecture" class="max-w-7xl mx-auto px-6 py-32">
+            <div class="text-center mb-16 scroll-trigger slide-up">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">Engineered for Performance</h2>
+                <p class="text-veyrix-muted max-w-2xl mx-auto">Veyrix bypasses bloated modern frameworks in favor of heavily optimized Vanilla JS and native browser APIs.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 scroll-trigger slide-up stagger-container">
+                
+                <!-- Bento Card 1: Virtual File System -->
+                <div class="bento-card bg-veyrix-surface border border-veyrix-border rounded-xl p-8 hover:border-veyrix-muted transition-colors stagger-item slide-up">
+                    <div class="bento-content">
+                        <div class="w-10 h-10 rounded-md bg-veyrix-bg border border-veyrix-border flex items-center justify-center text-white mb-6">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-3 tracking-tight">AST Parsing Engine</h3>
+                        <p class="text-veyrix-muted text-sm leading-relaxed mb-6">
+                            Reads raw HTML, extracts relative paths, and resolves from the VFS into sandboxed Blobs.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Bento Card 2: Offline Native -->
+                <div class="bento-card bg-veyrix-surface border border-veyrix-border rounded-xl p-8 hover:border-veyrix-muted transition-colors stagger-item slide-up">
+                    <div class="bento-content">
+                        <div class="w-10 h-10 rounded-md bg-veyrix-bg border border-veyrix-border flex items-center justify-center text-white mb-6">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-3 tracking-tight">IndexedDB Storage</h3>
+                        <p class="text-veyrix-muted text-sm leading-relaxed">
+                            Bypass standard limits utilizing asynchronous IndexedDB for megabytes of raw code storage.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Bento Card 3: Compression -->
+                <div class="bento-card bg-veyrix-surface border border-veyrix-border rounded-xl p-8 hover:border-veyrix-muted transition-colors stagger-item slide-up">
+                    <div class="bento-content">
+                        <div class="w-10 h-10 rounded-md bg-veyrix-bg border border-veyrix-border flex items-center justify-center text-white mb-6">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-3 tracking-tight">LZ-String Compression</h3>
+                        <p class="text-veyrix-muted text-sm leading-relaxed">
+                            Rapid cloud sharing powered by the LZW algorithm cutting transmission bandwidth heavily.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Professional Global Footer -->
+    <footer class="border-t border-veyrix-border bg-[#0a0f1a] pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div class="md:col-span-2">
+                    <a href="#" class="flex items-center gap-3 group mb-4 inline-flex">
+                        <img src="assets/veyrix.svg" alt="Veyrix Logo" class="w-8 h-8 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all">
+                        <span class="font-bold text-white text-xl tracking-tight">Veyrix</span>
+                    </a>
+                    <p class="text-veyrix-muted text-sm leading-relaxed max-w-sm">
+                        A blazing-fast, offline-first development environment that lives entirely in your browser. Engineered for absolute privacy and maximum performance.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-semibold mb-4 tracking-tight">Product</h4>
+                    <ul class="space-y-3 text-sm text-veyrix-muted">
+                        <li><a href="/ide" class="hover:text-white transition-colors">Veyrix IDE</a></li>
+                        <li><a href="/web" class="hover:text-white transition-colors">Veyrix Web</a></li>
+                        <li><a href="/docs" class="hover:text-white transition-colors">Documentation</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-semibold mb-4 tracking-tight">Connect</h4>
+                    <ul class="space-y-3 text-sm text-veyrix-muted">
+                        <li><a href="https://github.com/notamitgamer/veyrix" target="_blank" class="hover:text-white transition-colors flex items-center gap-1.5">GitHub Repository <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a></li>
+                        <li><a href="https://github.com/notamitgamer" target="_blank" class="hover:text-white transition-colors flex items-center gap-1.5">Developer Profile <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a></li>
+                        <li><a href="https://amit.is-a.dev" target="_blank" class="hover:text-white transition-colors flex items-center gap-1.5">Portfolio <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-veyrix-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-veyrix-muted">
+                <p>Open Source &bull; Apache 2.0 Licensed</p>
+                <p>Built with precision by <a href="https://amit.is-a.dev" target="_blank" class="text-white hover:underline font-medium">Amit Dutta</a> &copy; 2026</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERSECTION OBSERVER & TYPEWRITER ENGINE -->
+    <script>
+        // --- 1. Define Code Blocks with Syntax Highlighting Tokens ---
+        
+        // Code Block 1: IndexedDB Persistence
+        const codeBlock1 = [
+            { text: "// Initialize Storage\n", cls: "cm" },
+            { text: "const ", cls: "kw" },
+            { text: "DB ", cls: "vr" },
+            { text: "= {\n", cls: "op" },
+            { text: "  save", cls: "fn" },
+            { text: ": ", cls: "op" },
+            { text: "async ", cls: "kw" },
+            { text: "(file) => {\n", cls: "op" },
+            { text: "    const ", cls: "kw" },
+            { text: "tx ", cls: "vr" },
+            { text: "= state.db\n      .", cls: "op" },
+            { text: "transaction", cls: "fn" },
+            { text: "(\n        ", cls: "op" },
+            { text: "'files'", cls: "st" },
+            { text: ",\n        ", cls: "op" },
+            { text: "'readwrite'", cls: "st" },
+            { text: "\n      );\n\n", cls: "op" },
+            { text: "    file.lastModified = Date.", cls: "op" },
+            { text: "now", cls: "fn" },
+            { text: "();\n\n", cls: "op" },
+            { text: "    await ", cls: "kw" },
+            { text: "tx.", cls: "op" },
+            { text: "objectStore", cls: "fn" },
+            { text: "(", cls: "op" },
+            { text: "'files'", cls: "st" },
+            { text: ")\n      .", cls: "op" },
+            { text: "put", cls: "fn" },
+            { text: "(file);\n", cls: "op" },
+            { text: "  }\n};\n", cls: "op" },
+            { text: "DB.", cls: "op" },
+            { text: "save", cls: "fn" },
+            { text: "(activeFile);", cls: "op" }
+        ];
+
+        // Code Block 2: Veyrix Web Interactive Simulation
+        const codeBlock2 = [
+            { text: "<", cls: "op" },
+            { text: "h1", cls: "tg" },
+            { text: ">\n", cls: "op" },
+            { text: "  Hello Veyrix\n", cls: "text-white", action: () => document.getElementById('live-preview-text').innerText = "Hello Veyrix" },
+            { text: "</", cls: "op" },
+            { text: "h1", cls: "tg" },
+            { text: ">\n\n", cls: "op" },
+            { text: "<", cls: "op" },
+            { text: "style", cls: "tg" },
+            { text: ">\n", cls: "op" },
+            { text: "  h1 ", cls: "vr" },
+            { text: "{\n    ", cls: "op" },
+            { text: "color", cls: "fn" },
+            { text: ": ", cls: "op" },
+            { text: "#000000", cls: "st", action: () => document.getElementById('live-preview-text').style.color = "#000000" },
+            { text: ";\n    ", cls: "op" },
+            { text: "font-family", cls: "fn" },
+            { text: ": ", cls: "op" },
+            { text: "sans-serif", cls: "st", action: () => document.getElementById('live-preview-text').style.fontFamily = "sans-serif" },
+            { text: ";\n  }\n", cls: "op" },
+            { text: "  body ", cls: "vr" },
+            { text: "{\n    ", cls: "op" },
+            { text: "background", cls: "fn" },
+            { text: ": ", cls: "op" },
+            { text: "#f8fafc", cls: "st", action: () => document.getElementById('live-preview-pane').style.backgroundColor = "#f8fafc" },
+            { text: ";\n  }\n", cls: "op" },
+            { text: "</", cls: "op" },
+            { text: "style", cls: "tg" },
+            { text: ">\n", cls: "op" }
+        ];
+
+        // Code Block 3: Security Hash
+        const codeBlock3 = [
+            { text: "async function ", cls: "kw" },
+            { text: "hashPassword", cls: "fn" },
+            { text: "(pwd) {\n", cls: "op" },
+            { text: "  const ", cls: "kw" },
+            { text: "msg ", cls: "vr" },
+            { text: "= new ", cls: "kw" },
+            { text: "TextEncoder", cls: "vr" },
+            { text: "()\n    .", cls: "op" },
+            { text: "encode", cls: "fn" },
+            { text: "(pwd);\n\n", cls: "op" },
+            { text: "  // Local device hash\n", cls: "cm" },
+            { text: "  const ", cls: "kw" },
+            { text: "hash ", cls: "vr" },
+            { text: "= await ", cls: "kw" },
+            { text: "crypto.subtle\n    .", cls: "op" },
+            { text: "digest", cls: "fn" },
+            { text: "(\n      ", cls: "op" },
+            { text: "'SHA-256'", cls: "st" },
+            { text: ",\n      msg\n    );\n\n", cls: "op" },
+            { text: "  const ", cls: "kw" },
+            { text: "arr ", cls: "vr" },
+            { text: "= Array.", cls: "op" },
+            { text: "from", cls: "fn" },
+            { text: "(\n    new ", cls: "kw" },
+            { text: "Uint8Array", cls: "vr" },
+            { text: "(hash)\n  );\n\n", cls: "op" },
+            { text: "  return ", cls: "kw" },
+            { text: "arr\n    .", cls: "op" },
+            { text: "map", cls: "fn" },
+            { text: "(b => \n      b.", cls: "op" },
+            { text: "toString", cls: "fn" },
+            { text: "(16)\n    )\n    .", cls: "op" },
+            { text: "join", cls: "fn" },
+            { text: "(", cls: "op" },
+            { text: "''", cls: "st" },
+            { text: ");\n", cls: "op" },
+            { text: "}", cls: "op" }
+        ];
+
+        // --- 2. Typewriter Engine ---
+        async function typeWriter(containerId, tokenArray) {
+            const container = document.getElementById(containerId);
+            const cursor = container.querySelector('.cursor');
+            
+            // Utility to simulate typing delay
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+            for (let token of tokenArray) {
+                // Create a span for the syntax token
+                const span = document.createElement('span');
+                span.className = token.cls;
+                container.insertBefore(span, cursor);
+
+                // Type character by character
+                for (let i = 0; i < token.text.length; i++) {
+                    span.textContent += token.text[i];
+                    
+                    // Trigger interactive actions if defined (on the last character)
+                    if (token.action && i === token.text.length - 1) {
+                        token.action();
+                    }
+
+                    // Auto-scroll so cursor is always visible
+                    container.scrollTop = container.scrollHeight;
+
+                    // Variable typing speeds
+                    let delay = Math.random() * 20 + 10; // Fast typing
+                    if (token.text[i] === '\n') delay = 150; // Pause at line breaks
+                    await sleep(delay);
+                }
+            }
+        }
+        
+        // --- 3. Stat Counter Engine ---
+        function runCounters(container) {
+            const counters = container.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                const duration = 1000; // 2 seconds
+                const increment = target / (duration / 16); // 60fps
+                
+                let current = target === 0 ? 100 : 0; // If target is 0, start at 100 and go down
+                const isDecrement = target === 0;
+
+                const updateCounter = () => {
+                    if (isDecrement) {
+                        current -= (100 / (duration / 16));
+                        if (current > target) {
+                            counter.innerText = Math.ceil(current);
+                            requestAnimationFrame(updateCounter);
+                        } else {
+                            counter.innerText = target;
+                        }
+                    } else {
+                        current += increment;
+                        if (current < target) {
+                            counter.innerText = Math.ceil(current);
+                            requestAnimationFrame(updateCounter);
+                        } else {
+                            counter.innerText = target;
+                        }
+                    }
+                };
+                updateCounter();
+            });
+        }
+
+        // --- 4. Intersection Observer Setup ---
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.25 // Trigger when 25% visible
+        };
+
+        const scrollObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    
+                    // Slide animation classes
+                    el.classList.add('in-view');
+                    
+                    // Trigger Stat Counters
+                    if (el.id === 'stats-section' && el.dataset.counted !== "true") {
+                        el.dataset.counted = "true";
+                        runCounters(el);
+                    }
+
+                    // Trigger Staggered List Items
+                    if (el.classList.contains('stagger-container') && el.dataset.staggered !== "true") {
+                        el.dataset.staggered = "true";
+                        const items = el.querySelectorAll('.stagger-item');
+                        items.forEach((item, index) => {
+                            setTimeout(() => {
+                                item.classList.add('in-view');
+                            }, index * 200); // 200ms delay between items
+                        });
+                    }
+                    
+                    // Trigger Typewriter if it has an ID and hasn't run yet
+                    const id = el.id;
+                    if (el.dataset.typed !== "true") {
+                        if (id === 'code-block-1') {
+                            el.dataset.typed = "true";
+                            setTimeout(() => typeWriter(id, codeBlock1), 400); // Wait for slide animation
+                        } else if (id === 'code-block-2') {
+                            el.dataset.typed = "true";
+                            setTimeout(() => typeWriter(id, codeBlock2), 400);
+                        } else if (id === 'code-block-3') {
+                            el.dataset.typed = "true";
+                            setTimeout(() => typeWriter(id, codeBlock3), 400);
+                        }
+                    }
+                }
+            });
+        }, observerOptions);
+
+        // --- 5. Initializers ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Observe animations
+            document.querySelectorAll('.scroll-trigger, #code-block-1, #code-block-2, #code-block-3').forEach(el => {
+                scrollObserver.observe(el);
+            });
+
+            // Bento Box Hover Effect Logic
+            document.querySelectorAll('.bento-card').forEach(card => {
+                card.addEventListener('mousemove', e => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>
